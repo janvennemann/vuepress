@@ -1,3 +1,5 @@
+const pageCache = new Map();
+
 export const hashRE = /#.*$/
 export const extRE = /\.(md|html)$/
 export const endingSlashRE = /\/$/
@@ -58,12 +60,17 @@ export function resolvePage (pages, rawPath, base) {
     rawPath = resolvePath(rawPath, base)
   }
   const path = normalize(rawPath)
+  if (pageCache.has(path)) {
+    return pageCache.get(path);
+  }
   for (let i = 0; i < pages.length; i++) {
     if (normalize(pages[i].regularPath) === path) {
-      return Object.assign({}, pages[i], {
+      const resolvedPage = Object.assign({}, pages[i], {
         type: 'page',
         path: ensureExt(pages[i].path)
       })
+      pageCache.set(path, resolvedPage)
+      return resolvedPage
     }
   }
   console.error(`[vuepress] No matching page found for sidebar item "${rawPath}"`)
